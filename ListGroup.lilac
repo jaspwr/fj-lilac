@@ -1,0 +1,16 @@
+{#if props.$list.length > 0}
+    <div class="diff-divider">{props.name}</div>
+{/if}
+{#for q in $lstate props.list}
+    <QuestionButton q={q} />
+{/for}
+
+<style>
+    .diff-divider {
+	font-size: 1.2rem;
+	margin-left: 0.3rem;
+	color: var(--text-sec);
+	cursor: pointer;
+	padding: 0.3rem;
+    }
+</style

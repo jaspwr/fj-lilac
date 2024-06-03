@@ -1,0 +1,193 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Emoji:wght@300..700&display=swap" rel="stylesheet">
+
+<script>
+    const sideBarSize = "250";
+
+    const questions = {
+	tutorial: lstate([]),
+	easy: lstate([]),
+	medium: lstate([]),
+	hard: lstate([]),
+	other: lstate([]),
+    }
+
+    global.selected_question = state(undefined);
+
+    const username = state("ashdjkasd");
+
+    const show_comp_info = state(false);
+    const show_scoreboard = state(false);
+
+    const selected_question_data = state(undefined);
+
+    const question_data = {};
+
+    global.get_question_data = async (slug) => {
+	if (question_data[slug] !== undefined) {
+	    return question_data[slug];
+	}
+
+	question_data[slug] = {
+	    slug: slug,
+	    name: await (await fetch(`comp/prob/${slug}/name`)).text(),
+	    icon: await (await fetch(`comp/prob/${slug}/icon`)).text(),
+	    instructions: await (await fetch(`comp/prob/${slug}/instructions`)).text(),
+	    solved: state(await (await fetch(`comp/prob/${slug}/solved`)).text() === "true"),
+	    points: parseInt(await (await fetch(`comp/prob/${slug}/points`)).text()),
+	    difficulty: parseInt(await (await fetch(`comp/prob/${slug}/difficulty`)).text()),
+	    brief: await (await fetch(`comp/prob/${slug}/brief`)).text(),
+	};
+
+	question_data[slug].instructions = question_data[slug].instructions
+	    .replace(/(<img\s+[^>]*src=")(?!https:\/\/)([^"]+)"/g, (match, p1, p2) => {
+	    	return `${p1}comp/prob/${slug}/${p2}"`;
+	    });
+
+	return question_data[slug];
+    }
+
+    global.change_selected_question = (slug) => {
+	global.selected_question.set(() => slug);
+	global.get_question_data(slug).then((q) => {
+	    document.getElementById("question-instructions").scrollTo(0, 0);
+	    document.getElementById("instructions-md").innerHTML = q.instructions;
+	    document.getElementById("submission-textarea").value = "";
+	    selected_question_data.set(() => q);
+	});
+    };
+
+    fetch("comp/prob/").then(res => res.text()).then(res => {
+	let arr = Array.from(res.matchAll(/prob\/(.*)\/"/g), match => match[0].split("/")[1]);
+
+
+	arr.forEach(slug => {
+	    global.get_question_data(slug).then((q) => {
+		switch (q.difficulty) {
+		    case 0: questions.tutorial.push(slug); break;
+		    case 1: questions.easy.push(slug); break;
+		    case 2: questions.medium.push(slug); break;
+		    case 3: questions.hard.push(slug); break;
+		    default: questions.other.push(slug); break;
+		}
+
+		if (global.selected_question.value === undefined) {
+		    global.change_selected_question(slug);
+		}
+	    });
+
+	});
+    });
+
+    global.difficulty_name = (d) => {
+	switch (d) {
+	    case 0: return "Tutorial";
+	    case 1: return "Easy";
+	    case 2: return "Medium";
+	    case 3: return "Hard";
+	}
+	return "Unknown";
+    };
+</script>
+
+<div class="layout">
+    <div class="top-bar">
+	<!-- TODO: icons -->
+	<div>
+	    <button onclick={() => show_comp_info.set(() => true)}>Comp info</button>
+	    <button onclick={() => show_scoreboard.set(() => true)}>Scoreboard</button>
+	</div>
+	<div>
+	    Logged in as <b>{$username}</b>
+	    <a href="auth/logout">Logout</a>
+	</div>
+    </div>
+    <div class="question-list">
+	<ListGroup name="Tutorial" list={questions.tutorial} />
+	<ListGroup name="Easy" list={questions.easy} />
+	<ListGroup name="Medium" list={questions.medium} />
+	<ListGroup name="Hard" list={questions.hard} />
+	<ListGroup name="Other" list={questions.other} />
+    </div>
+    <div id="question-instructions" class="question-instructions">
+	{#if global.$selected_question !== undefined}
+	    {#if $selected_question_data !== undefined}
+		<h1 style="margin-top: 0px;">
+		    <span style={$selected_question_data.$solved ? "text-decoration: line-through;" : "" }>
+			{$selected_question_data.name}
+		    </span>
+
+		    {#if $selected_question_data.$solved}
+			<span style="font-size: 1.3rem;">✓</span>
+		    {/if}
+		</h1>
+
+		<div style="margin-left: 1rem;">
+		    <span style="margin-right: 1rem;"><b>Difficulty:</b> {global.difficulty_name($selected_question_data.difficulty)}</span>
+		    <span><b>Points:</b> {$selected_question_data.points}</span>
+		</div>
+	    {/if}
+
+	    <div id="instructions-md"></div>
+
+	    <SubmissionArea />
+	{/if}
+    </div>
+</div>
+
+<Popout shown={show_scoreboard} />
+<Popout shown={show_comp_info} />
+
+<style>
+#question-list-toggle {
+    z-index: 2;
+}
+
+.layout {
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    display: grid;
+    grid-template-columns: 14rem 1.7fr;
+    grid-template-rows: 2rem 1.9fr;
+    grid-auto-rows: 1fr;
+    gap: 0px 0px;
+    grid-auto-flow: row;
+    grid-template-areas: "top-bar top-bar"
+    "question-list question-instructions";
+}
+
+.top-bar {
+    grid-area: top-bar;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.25rem;
+    color: var(--text-sec);
+    background-color: var(--bg-sec);
+}
+
+.question-list {
+    grid-area: question-list;
+    color: var(--text-sec);
+    background-color: var(--bg-sec);
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+.question-instructions {
+    color: var(--text-prim);
+    background-color: var(--bg-prim);
+    grid-area: question-instructions;
+    overflow-y: scroll;
+    padding: 1.5rem;
+}
+
+.question-instructions img {
+    max-height: 25rem;
+    max-width: 90%;
+}
+</style>

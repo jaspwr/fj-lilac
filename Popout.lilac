@@ -1,0 +1,33 @@
+<script>
+    document.addEventListener('keydown', e => {
+	if (!props.shown.value || e.key !== 'Escape') return;
+
+	props.shown.set(() => false);
+    });
+
+</script>
+
+{#if props.$shown}
+    <div class="popout">
+	<div class="contents">
+	    <input type="checkbox" checked/>
+	</div>
+    </div>
+{/if}
+
+<style>
+    .popout {
+	position: absolute;
+	width: calc(100% - 60px);
+	height: calc(100% - 60px);
+	top: 30px;
+	left: 30px;
+	background-color: var(--bg-prim);
+	color: var(--text-prim);
+	box-shadow: 0 0 50px 15px #000;
+    }
+
+    .contents {
+	padding: 1rem;
+    }
+</style>

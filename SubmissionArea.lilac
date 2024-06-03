@@ -1,0 +1,101 @@
+<script>
+    const slug = global.selected_question;
+
+    const open_fuzz = () => {
+	window.open(
+	  `comp/prob/${slug.value}/fuzz`,
+	  "_blank"
+	);
+    }
+
+    const waiting_on_server = state(false);
+
+    const error_message = state(undefined);
+
+    const submit = (slug) => {
+	if (waiting_on_server.value === true) return;
+
+	error_message.set(() => undefined);
+
+	let submission = document.getElementById("submission-textarea").value;
+	waiting_on_server.set(() => true);
+
+	fetch(`comp/prob/${slug}/judge`, {
+	    method: "POST",
+	    body: `judge=${submission}`,
+	}).then((res) => {
+	    waiting_on_server.set(() => false);
+
+	    res.text().then((body) => {
+		error_message.set(() => body);
+	    });
+
+	    if (res.ok) {
+		global.get_question_data(slug).then(q => q.solved?.set(() => true));
+	    }
+	});
+    }
+</script>
+
+<div class="question-submission">
+    <div class="sec">
+	<button class="get-input" onclick={open_fuzz}>
+	    Get input
+	</button>
+    </div>
+    <div class ="sec">
+	<textarea id="submission-textarea" />
+	<button onclick={() => submit(slug.value)}>
+	    {$waiting_on_server ? "Processing..." : "Submit"}
+	</button>
+    </div>
+    <div class ="sec error-message-area">
+        {#if $error_message !== undefined}
+	    <code class="error-message">
+		{$error_message}
+	    </code>
+	{/if}
+    </div>
+</div>
+
+<style>
+.get-input {
+    padding: 1.7rem;
+}
+
+.sec {
+    flex-direction: column;
+    display: flex;
+}
+
+.error-message-area {
+    min-height: 3rem;
+}
+
+button {
+    color: var(--text-sec);
+    background-color: var(--bg-sec);
+    margin: 0.25rem;
+}
+
+textarea {
+    height: 8rem;
+    width: 15rem;
+    color: var(--text-sec);
+    background-color: var(--bg-sec);
+    margin: 0.25rem;
+}
+
+.question-submission {
+    color: var(--text-prim);
+    background-color: var(--bg-prim);
+    grid-area: question-submission;
+    padding: 0.7rem;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-content: center;
+    flex-wrap: wrap;
+    align-items: center;
+}
+</style>
