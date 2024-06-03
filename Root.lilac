@@ -72,7 +72,7 @@
 		    default: questions.other.push(slug); break;
 		}
 
-		if (global.selected_question.value === undefined) {
+		if (global.selected_question.get() === undefined) {
 		    global.change_selected_question(slug);
 		}
 	    });

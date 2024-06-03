@@ -1,6 +1,6 @@
 <script>
     document.addEventListener('keydown', e => {
-	if (!props.shown.value || e.key !== 'Escape') return;
+	if (!props.shown.get() || e.key !== 'Escape') return;
 
 	props.shown.set(() => false);
     });

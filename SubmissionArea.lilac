@@ -3,7 +3,7 @@
 
     const open_fuzz = () => {
 	window.open(
-	  `comp/prob/${slug.value}/fuzz`,
+	  `comp/prob/${slug.get()}/fuzz`,
 	  "_blank"
 	);
     }
@@ -13,11 +13,11 @@
     const error_message = state(undefined);
 
     const submit = (slug) => {
-	if (waiting_on_server.value === true) return;
+	if (waiting_on_server.get() === true) return;
 
 	error_message.set(() => undefined);
 
-	let submission = document.getElementById("submission-textarea").value;
+	let submission = document.getElementById("submission-textarea").get();
 	waiting_on_server.set(() => true);
 
 	fetch(`comp/prob/${slug}/judge`, {
@@ -45,7 +45,7 @@
     </div>
     <div class ="sec">
 	<textarea id="submission-textarea" />
-	<button onclick={() => submit(slug.value)}>
+	<button onclick={() => submit(slug.get())}>
 	    {$waiting_on_server ? "Processing..." : "Submit"}
 	</button>
     </div>
