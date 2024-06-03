@@ -17,7 +17,7 @@
 
 	error_message.set(() => undefined);
 
-	let submission = document.getElementById("submission-textarea").get();
+	let submission = document.getElementById("submission-textarea").value;
 	waiting_on_server.set(() => true);
 
 	fetch(`comp/prob/${slug}/judge`, {
