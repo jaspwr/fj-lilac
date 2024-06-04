@@ -136,8 +136,13 @@
     </div>
 </div>
 
-<Popout shown={show_scoreboard} />
-<Popout shown={show_comp_info} />
+<Popout shown={show_scoreboard} >
+    <Scoreboard />
+</Popout>
+
+<Popout shown={show_comp_info} >
+    <CompInfo />
+</Popout>
 
 <style>
 #question-list-toggle {

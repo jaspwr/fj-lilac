@@ -10,7 +10,7 @@
 {#if props.$shown}
     <div class="popout">
 	<div class="contents">
-	    <input type="checkbox" checked/>
+	    <Children />
 	</div>
     </div>
 {/if}

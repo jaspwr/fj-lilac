@@ -1,0 +1,19 @@
+<script>
+    let title = state("");
+
+    fetch("comp/name").then(res => res.text()).then(name => title.set(() => name));
+    fetch("comp/instructions").then(res => res.text()).then(instructions => {
+	document.getElementById("instructions").innerHTML = instructions;
+    });
+</script>
+
+<div class="container">
+    <h1 style="margin-top: -0.2rem;">{$title}</h1>
+    <div id="instructions"></div>
+</div>
+
+<style>
+    .container {
+	overflow-y: scroll;
+    }
+</style>
